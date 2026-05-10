@@ -11,7 +11,10 @@ def create_sidebar():
     return html.Div([
         # ── Logo / Title ──
         html.Div([
-            html.Div('🫁', className='sidebar-logo-icon'),
+            html.Img(src='/assets/Lawan TBC.png', style={
+                'width': '120px', 'height': 'auto', 'marginBottom': '8px',
+                'borderRadius': '12px',
+            }),
             html.Div('TBC INDONESIA', className='sidebar-logo-text'),
             html.Div('Dashboard Analitik Spasial', className='sidebar-logo-sub'),
         ], className='sidebar-logo'),

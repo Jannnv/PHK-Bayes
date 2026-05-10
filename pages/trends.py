@@ -149,24 +149,7 @@ def layout():
             ], lg=7, md=12),
         ], className='g-3 section-gap'),
 
-        # ── Efek Temporal + Fixed Effects ──
-        dbc.Row([
-            dbc.Col([
-                html.Div([
-                    html.Div('Efek Random Temporal (RW1)', className='chart-title'),
-                    dcc.Graph(id='tr-temporal-chart', config={'displayModeBar': False},
-                              style={'height': '320px'}),
-                ], className='glass-card'),
-            ], lg=6, md=12),
 
-            dbc.Col([
-                html.Div([
-                    html.Div('Estimasi Fixed Effects (Kovariat)', className='chart-title'),
-                    dcc.Graph(id='tr-fixed-effects', config={'displayModeBar': False},
-                              style={'height': '320px'}),
-                ], className='glass-card'),
-            ], lg=6, md=12),
-        ], className='g-3 section-gap fade-in-up'),
 
         # ── Data Table ──
         html.Div([
@@ -180,9 +163,9 @@ def layout():
 
         # ── Footer ──
         html.Div([
-            '🫁 Dashboard TBC Indonesia | Model: Bayesian CAR Leroux Spasio-Temporal (INLA)',
+            'Dashboard TBC Indonesia | Model: Bayesian CAR Leroux Spasio-Temporal (INLA)',
             html.Br(),
-            '📊 Sumber Data: BPS, Kemenkes RI | Periode: 2020–2025',
+            'Sumber Data: BPS, Kemenkes RI | Periode: 2020–2025',
         ], className='dashboard-footer'),
 
     ], className='page-content')
@@ -526,10 +509,7 @@ def update_table(year_range, sel_provs):
          'format': dash_table.Format.Format(precision=1, scheme=dash_table.Format.Scheme.fixed)},
         {'name': 'Air Minum (%)',      'id': 'AirMinum', 'type': 'numeric',
          'format': dash_table.Format.Format(precision=1, scheme=dash_table.Format.Scheme.fixed)},
-        {'name': 'Lama Sekolah',       'id': 'LamaSekolah', 'type': 'numeric',
-         'format': dash_table.Format.Format(precision=2, scheme=dash_table.Format.Scheme.fixed)},
-        {'name': 'Rumah Layak (%)',    'id': 'RumahLayak', 'type': 'numeric',
-         'format': dash_table.Format.Format(precision=1, scheme=dash_table.Format.Scheme.fixed)},
+
         {'name': 'Kemiskinan (%)',     'id': 'Kemiskinan', 'type': 'numeric',
          'format': dash_table.Format.Format(precision=2, scheme=dash_table.Format.Scheme.fixed)},
     ]
