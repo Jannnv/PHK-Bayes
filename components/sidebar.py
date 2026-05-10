@@ -12,7 +12,7 @@ def create_sidebar():
         # ── Logo / Title ──
         html.Div([
             html.Img(src='/assets/Lawan TBC.png', style={
-                'width': '120px', 'height': 'auto', 'marginBottom': '8px',
+                'width': '170px', 'height': 'auto', 'marginBottom': '8px',
                 'borderRadius': '12px',
             }),
             html.Div('TBC INDONESIA', className='sidebar-logo-text'),
