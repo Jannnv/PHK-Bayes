@@ -24,12 +24,8 @@ PROVINSI_LIST = sorted(DF['Provinsi'].unique().tolist())
 YEARS         = sorted(DF['Tahun'].unique().tolist())
 
 KOVARIAT_OPTIONS = [
-    {'label': 'Sanitasi Layak (%)',        'value': 'Sanitasi'},
-    {'label': 'Air Minum Layak (%)',        'value': 'AirMinum'},
-    {'label': 'Rata-rata Lama Sekolah',     'value': 'LamaSekolah'},
-    {'label': 'Rumah Layak (%)',            'value': 'RumahLayak'},
-    {'label': 'Kemiskinan (%)',             'value': 'Kemiskinan'},
-    {'label': 'Kepadatan Penduduk',         'value': 'Kepadatan'},
+    {'label': 'Sanitasi Layak (%)',   'value': 'Sanitasi'},
+    {'label': 'Air Minum Layak (%)', 'value': 'AirMinum'},
 ]
 
 
@@ -304,44 +300,100 @@ def update_ranking(year_range, toggle):
     Input('tr-scatter-x', 'value'),
 )
 def update_scatter(year_range, x_col):
-    tahun = year_range[1]
+    tahun = int(year_range[1])  # ensure Python int for comparison
     df_y  = DF[DF['Tahun'] == tahun].copy()
+
+    if df_y.empty or x_col not in df_y.columns:
+        fig = go.Figure()
+        fig.add_annotation(text='Data tidak tersedia', x=0.5, y=0.5,
+                           xref='paper', yref='paper', showarrow=False,
+                           font=dict(size=14, color='#94a3b8'))
+        apply_chart_styling(fig)
+        return fig
+
     x_label = next((o['label'] for o in KOVARIAT_OPTIONS if o['value'] == x_col), x_col)
 
-    fig = px.scatter(
-        df_y, x=x_col, y='RR',
-        hover_name='Provinsi',
-        color='RR',
-        color_continuous_scale=[[0,'#2e8b57'],[0.5,'#4a8fa8'],[1,'#d94f4f']],
-        size='Rate_per100k', size_max=30,
-        trendline='ols',
-        labels={x_col: x_label, 'RR': 'Relative Risk (RR)',
-                'Rate_per100k': 'Angka Penemuan /100k'},
-    )
-    # Style trendline
-    for trace in fig.data:
-        if hasattr(trace, 'mode') and trace.mode == 'lines':
-            trace.line = dict(color='rgba(61,139,138,0.4)', width=1.5, dash='dash')
+    # Color by RR value
+    rr_min, rr_max = df_y['RR'].min(), df_y['RR'].max()
 
-    # Annotate top 3 outliers by RR
-    if len(df_y) > 3:
-        outliers = df_y.nlargest(3, 'RR')
-        for _, row in outliers.iterrows():
-            fig.add_annotation(
-                x=row[x_col], y=row['RR'], text=row['Provinsi'],
-                showarrow=True, arrowhead=0,
-                font=dict(family='Inter', size=9, color='#475569'),
-                arrowcolor='#94a3b8', ax=20, ay=-25,
-                bgcolor='rgba(255,255,255,0.9)', borderpad=3,
-            )
+    fig = go.Figure()
 
+    # Scatter points sized by Rate_per100k
+    size_vals = df_y['Rate_per100k'].fillna(50)
+    size_norm = 8 + (size_vals - size_vals.min()) / (size_vals.max() - size_vals.min() + 1e-9) * 22
+
+    # Color gradient based on RR
+    colors = []
+    for rr in df_y['RR']:
+        ratio = (rr - rr_min) / (rr_max - rr_min + 1e-9)
+        if ratio > 0.66:
+            colors.append('#d94f4f')
+        elif ratio > 0.33:
+            colors.append('#c0775a')
+        else:
+            colors.append('#2e8b57')
+
+    fig.add_trace(go.Scatter(
+        x=df_y[x_col],
+        y=df_y['RR'],
+        mode='markers+text',
+        marker=dict(
+            size=size_norm,
+            color=colors,
+            line=dict(color='white', width=1),
+            opacity=0.85,
+        ),
+        text=df_y['Provinsi'],
+        textposition='top center',
+        textfont=dict(family='Inter', size=8, color='#64748b'),
+        hovertemplate=(
+            '<b>%{text}</b><br>'
+            + x_label + ': %{x:.1f}<br>'
+            'RR: %{y:.3f}<br>'
+            'Angka Penemuan: %{customdata:.1f}/100k'
+            '<extra></extra>'
+        ),
+        customdata=df_y['Rate_per100k'],
+        showlegend=False,
+    ))
+
+    # Manual linear trendline (no statsmodels needed)
+    import numpy as np
+    x_vals = df_y[x_col].dropna().values
+    y_vals = df_y.loc[df_y[x_col].notna(), 'RR'].values
+    if len(x_vals) > 2:
+        coeffs = np.polyfit(x_vals, y_vals, 1)
+        x_line = np.linspace(x_vals.min(), x_vals.max(), 50)
+        y_line = np.polyval(coeffs, x_line)
+        fig.add_trace(go.Scatter(
+            x=x_line, y=y_line,
+            mode='lines',
+            line=dict(color='rgba(61,139,138,0.5)', width=2, dash='dash'),
+            name='Tren linear',
+            hoverinfo='skip',
+        ))
+        # Correlation annotation
+        corr = np.corrcoef(x_vals, y_vals)[0, 1]
+        fig.add_annotation(
+            text=f'r = {corr:.3f}',
+            x=0.02, y=0.98, xref='paper', yref='paper',
+            showarrow=False, bgcolor='rgba(255,255,255,0.85)',
+            bordercolor='#d1dce6', borderwidth=1, borderpad=6,
+            font=dict(family='Inter', size=12, color='#2a7c8c'),
+        )
+
+    # RR=1 reference line
     fig.add_hline(y=1.0, line_dash='dot', line_color='#c0775a',
-                  annotation_text='RR=1', annotation_font=dict(color='#c0775a', size=9))
+                  annotation_text='RR = 1',
+                  annotation_font=dict(color='#c0775a', size=9))
+
     apply_chart_styling(fig)
     fig.update_layout(
         margin=dict(l=50, r=20, t=20, b=50),
-        coloraxis_showscale=False, height=380,
-        xaxis_title=x_label, yaxis_title='Relative Risk (RR)',
+        xaxis_title=x_label,
+        yaxis_title='Relative Risk (RR)',
+        height=380,
+        showlegend=False,
     )
     return fig
 

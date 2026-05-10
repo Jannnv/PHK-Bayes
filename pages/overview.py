@@ -184,13 +184,28 @@ def update_kpi(tahun):
     yoy_san  = _yoy(DF, 'Sanitasi', tahun)
     yoy_air  = _yoy(DF, 'AirMinum', tahun)
 
+    # YoY for n_high_rr (count of provinces with RR > 1)
+    if tahun > YEARS[0]:
+        df_prev = DF[DF['Tahun'] == tahun - 1]
+        n_prev = int((df_prev['RR'] > 1.0).sum())
+        yoy_hrr = ((n_high_rr - n_prev) / n_prev) * 100 if n_prev != 0 else 0
+        # YoY for max_rr
+        prev_max = df_prev['RR'].max()
+        yoy_maxrr = ((max_rr - prev_max) / prev_max) * 100 if prev_max != 0 else 0
+    else:
+        yoy_hrr = None
+        yoy_maxrr = None
+
     sp_rate = _sparkline_vals(DF, 'Rate_per100k')
     sp_rr   = _sparkline_vals(DF, 'RR')
     sp_san  = _sparkline_vals(DF, 'Sanitasi')
     sp_air  = _sparkline_vals(DF, 'AirMinum')
 
-    # For RR KPI: higher = worse, so invert direction logic
-    # We want progress bar: 100% = all RR < 1 (ideal)
+    # Sparkline: jumlah provinsi RR>1 per tahun
+    sp_hrr = [int((DF[DF['Tahun'] == y]['RR'] > 1.0).sum()) for y in YEARS]
+    # Sparkline: max RR per tahun
+    sp_maxrr = [float(DF[DF['Tahun'] == y]['RR'].max()) for y in YEARS]
+
     rr_progress = max(0, min(100, (1 - avg_rr) * 100 + 50))
     rate_progress = max(0, min(100, (1 - avg_rate / 150) * 100))
 
@@ -202,10 +217,10 @@ def update_kpi(tahun):
                         yoy_rr, sp_rr, '📊', 'persen',
                         avg_rr > 1.0, rr_progress),
         create_kpi_card('hrr', 'PROVINSI RR > 1', f'{n_high_rr} Prov',
-                        0, [0]*6, '⚠️', 'desimal3',
+                        yoy_hrr, sp_hrr, '⚠️', 'desimal3',
                         n_high_rr > 17, (1 - n_high_rr / 34) * 100),
         create_kpi_card('maxrr', 'RR TERTINGGI', f'{max_rr:.3f}',
-                        0, sp_rr, '📈', 'desimal3',
+                        yoy_maxrr, sp_maxrr, '📈', 'desimal3',
                         max_rr > 1.5, max(0, (2 - max_rr) / 2 * 100)),
         create_kpi_card('san', 'SANITASI LAYAK', f'{avg_san:.1f}%',
                         yoy_san, sp_san, '🚿', 'persen',
