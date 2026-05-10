@@ -1,0 +1,6 @@
+"Parameter","mean","sd","0.025quant","0.5quant","0.975quant","mode"
+"ν² (Spatial Variance)",46.1161,14.7702,23.6083,43.9601,81.1197,39.9601
+"ρS (Spatial Autocorrelation)",0.8742,0.1031,0.595,0.9041,0.9858,0.9591
+"τ² (Temporal Variance)",31.7144,20.3247,7.9817,26.7873,84.4123,18.771
+"σ² (Temporal IID Variance)",3590.4038,26100.1434,20.355,458.0291,24333.0599,39.433
+"ρT (Temporal Autocorrelation)",0.9255,NA,0.9387,0.9255,0.94,0.9255

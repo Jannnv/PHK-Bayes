@@ -1,0 +1,65 @@
+"""
+Sidebar Component — Dashboard TBC Indonesia
+Dark teal sidebar dengan navigasi dan sliding active indicator.
+"""
+from dash import html
+import dash_bootstrap_components as dbc
+
+
+def create_sidebar():
+    """Create the sidebar navigation with sliding tab indicator."""
+    return html.Div([
+        # ── Logo / Title ──
+        html.Div([
+            html.Div('🫁', className='sidebar-logo-icon'),
+            html.Div('TBC INDONESIA', className='sidebar-logo-text'),
+            html.Div('Dashboard Analitik Spasial', className='sidebar-logo-sub'),
+        ], className='sidebar-logo'),
+
+        # ── Navigation ──
+        html.Div([
+            html.Hr(className='sidebar-divider'),
+
+            # Sliding active indicator
+            html.Div(id='nav-indicator', className='nav-indicator'),
+
+            dbc.NavLink([
+                html.Span('📌', className='sidebar-link-icon'),
+                html.Span('Overview TBC'),
+            ], href='/', id='nav-overview', className='sidebar-link'),
+
+            dbc.NavLink([
+                html.Span('📈', className='sidebar-link-icon'),
+                html.Span('Tren & Analisis'),
+            ], href='/trends', id='nav-trends', className='sidebar-link'),
+
+        ], className='sidebar-nav', style={'position': 'relative'}),
+
+        # ── Bottom Actions ──
+        html.Div([
+            html.Button([
+                html.Span('▶', className='sidebar-link-icon'),
+                html.Span('Mulai Tour'),
+            ], id='btn-start-tour', className='sidebar-link', n_clicks=0),
+
+            html.Button([
+                html.Span('ℹ', className='sidebar-link-icon'),
+                html.Span('Tentang'),
+            ], id='btn-about', className='sidebar-link', n_clicks=0),
+
+            html.Hr(className='sidebar-divider'),
+
+            html.Div([
+                html.Div('Model: CAR Leroux Spasio-Temporal', style={
+                    'fontSize': '10px', 'color': 'rgba(255,255,255,0.4)',
+                    'textAlign': 'center', 'marginBottom': '4px',
+                }),
+                html.Div('Data: 34 Provinsi | 2020–2025', style={
+                    'fontSize': '10px', 'color': 'rgba(255,255,255,0.4)',
+                    'textAlign': 'center',
+                }),
+            ], style={'padding': '8px 0'}),
+
+        ], className='sidebar-bottom'),
+
+    ], className='sidebar')

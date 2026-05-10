@@ -1,0 +1,12 @@
+"Metrik","Nilai"
+"DIC",368.5559
+"WAIC",311.9793
+"-sum(log(CPO))",359.1995
+"CPO Failures",0
+"Total Observasi",204
+"Jumlah Provinsi",34
+"Jumlah Tahun",6
+"Range Y (min)",244
+"Range Y (max)",61530
+"Range RR (min)",0.2948
+"Range RR (max)",1.7973
