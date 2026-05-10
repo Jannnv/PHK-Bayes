@@ -27,7 +27,7 @@ app = dash.Dash(
     update_title='Memuat...',
     meta_tags=[
         {'name': 'viewport', 'content': 'width=device-width, initial-scale=1.0'},
-        {'name': 'description', 'content': 'Dashboard interaktif kemiskinan Indonesia dengan visualisasi data premium'},
+        {'name': 'description', 'content': 'Dashboard TBC Indonesia - Analisis Bayesian Spasio-Temporal 34 Provinsi'},
     ],
 )
 
@@ -485,5 +485,10 @@ app.clientside_callback(
 # RUN SERVER
 # ═══════════════════════════════════════════════════════════════════════
 
+# Expose server for gunicorn (Railway / Render)
+server = app.server
+
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=8050)
+    port = int(os.environ.get('PORT', 8050))
+    debug = os.environ.get('RAILWAY_ENVIRONMENT') is None  # debug=False in production
+    app.run(debug=debug, host='0.0.0.0', port=port)
