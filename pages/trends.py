@@ -154,7 +154,7 @@ def layout():
         # ── Data Table ──
         html.Div([
             html.Div([
-                html.Span('📋 Data Detail per Provinsi', className='chart-title'),
+                html.Span('📋 Data per Provinsi', className='chart-title'),
                 html.Span(' — Klik header untuk sort',
                           style={'fontSize': '11px', 'color': '#64748b', 'marginLeft': '8px'}),
             ], style={'marginBottom': '16px'}),
@@ -509,9 +509,6 @@ def update_table(year_range, sel_provs):
          'format': dash_table.Format.Format(precision=1, scheme=dash_table.Format.Scheme.fixed)},
         {'name': 'Air Minum (%)',      'id': 'AirMinum', 'type': 'numeric',
          'format': dash_table.Format.Format(precision=1, scheme=dash_table.Format.Scheme.fixed)},
-
-        {'name': 'Kemiskinan (%)',     'id': 'Kemiskinan', 'type': 'numeric',
-         'format': dash_table.Format.Format(precision=2, scheme=dash_table.Format.Scheme.fixed)},
     ]
 
     table = dash_table.DataTable(

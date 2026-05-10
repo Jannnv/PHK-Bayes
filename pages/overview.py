@@ -136,27 +136,13 @@ def layout():
         # ── Insight Box ──
         html.Div(id='ov-insight', className='fade-in-up section-gap'),
 
-        # ── Model Info Cards ──
-        dbc.Row([
-            dbc.Col([
-                html.Div([
-                    html.Div('📐 Diagnostik Model', className='chart-title'),
-                    html.Div(id='ov-diagnostik'),
-                ], className='glass-card'),
-            ], lg=6, md=12),
-            dbc.Col([
-                html.Div([
-                    html.Div('🔬 Hyperparameter Posterior', className='chart-title'),
-                    html.Div(id='ov-hyperpar'),
-                ], className='glass-card'),
-            ], lg=6, md=12),
-        ], className='g-3 section-gap fade-in-up'),
+
 
         # ── Footer ──
         html.Div([
-            '🫁 Dashboard TBC Indonesia | Model: Bayesian CAR Leroux Spasio-Temporal (INLA)',
+            'Dashboard TBC Indonesia | Model: Bayesian CAR Leroux Spasio-Temporal (INLA)',
             html.Br(),
-            '📊 Sumber Data: BPS, Kemenkes RI | Periode: 2020–2025',
+            'Sumber Data: BPS, Kemenkes RI | Periode: 2020–2025',
         ], className='dashboard-footer'),
 
     ], className='page-content')
