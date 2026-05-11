@@ -35,7 +35,7 @@ def layout():
         html.Div([
             html.Div([
                 html.H2('Tren & Analisis TBC', className='page-title gradient-text'),
-                html.P('Perkembangan temporal, korelasi kovariat, dan hasil model INLA CAR Leroux',
+                html.P('Perkembangan temporal, korelasi kovariat, dan hasil model Bayesian ST-CAR',
                        className='page-subtitle'),
             ]),
         ], className='page-header'),
@@ -163,7 +163,7 @@ def layout():
 
         # ── Footer ──
         html.Div([
-            'Dashboard TBC Indonesia | Model: Bayesian CAR Leroux Spasio-Temporal (INLA)',
+            'Dashboard TBC Indonesia | Model: Bayesian ST-CAR (INLA)',
             html.Br(),
             'Sumber Data: BPS, Kemenkes RI | Periode: 2020–2025',
         ], className='dashboard-footer'),

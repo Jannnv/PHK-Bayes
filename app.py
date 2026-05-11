@@ -41,7 +41,7 @@ TOUR_STEPS = [
     {
         'title': 'Selamat Datang! 🫁',
         'text': 'Dashboard TBC Indonesia menyajikan hasil analisis model Bayesian '
-                'CAR Leroux Spasio-Temporal untuk 34 provinsi periode 2020–2025. '
+                'Bayesian ST-CAR untuk 34 provinsi periode 2020–2025. '
                 'Data mencakup Angka Penemuan TBC, Relative Risk (RR), dan kovariat sosial-ekonomi.',
     },
     {
@@ -147,13 +147,12 @@ app.layout = html.Div([
         dbc.ModalBody([
             html.P([
                 'Dashboard ini menyajikan hasil analisis model ',
-                html.Strong('Bayesian Spasio-Temporal CAR Leroux'),
+                html.Strong('Bayesian ST-CAR'),
                 ' untuk data Tuberkulosis (TBC) 34 provinsi Indonesia periode 2020–2025.',
             ], style={'lineHeight': '1.7', 'color': '#475569'}),
             html.P([
                 'Model dibangun menggunakan paket ', html.Strong('R-INLA'),
-                ' dengan struktur Poisson likelihood, efek spasial Leroux, '
-                'efek temporal RW1, dan interaksi spasio-temporal IID.',
+                ' efek temporal RW1, dan interaksi spasio-temporal IID.',
             ], style={'lineHeight': '1.7', 'color': '#475569'}),
             html.Hr(style={'borderColor': '#e8eff4'}),
             html.P([

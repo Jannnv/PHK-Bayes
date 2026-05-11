@@ -71,7 +71,7 @@ def layout():
         html.Div([
             html.Div([
                 html.H2('Overview TBC Nasional', className='page-title gradient-text'),
-                html.P('Distribusi dan pola risiko TBC 34 provinsi berdasarkan model Bayesian CAR Leroux',
+                html.P('Distribusi dan pola risiko TBC 34 provinsi berdasarkan model Bayesian ST-CAR',
                        className='page-subtitle'),
             ]),
             html.Div([
@@ -140,7 +140,7 @@ def layout():
 
         # ── Footer ──
         html.Div([
-            'Dashboard TBC Indonesia | Model: Bayesian CAR Leroux Spasio-Temporal (INLA)',
+            'Dashboard TBC Indonesia | Model: Bayesian ST-CAR (INLA)',
             html.Br(),
             'Sumber Data: BPS, Kemenkes RI | Periode: 2020–2025',
         ], className='dashboard-footer'),

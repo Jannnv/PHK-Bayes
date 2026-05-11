@@ -53,7 +53,7 @@ def create_sidebar():
             html.Hr(className='sidebar-divider'),
 
             html.Div([
-                html.Div('Model: CAR Leroux Spasio-Temporal', style={
+                html.Div('Model: Bayesian ST-CAR', style={
                     'fontSize': '10px', 'color': 'rgba(255,255,255,0.4)',
                     'textAlign': 'center', 'marginBottom': '4px',
                 }),
