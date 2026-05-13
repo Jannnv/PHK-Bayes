@@ -9,25 +9,25 @@
 /* ─── CSS Variables ─────────────────────────────────────────────────── */
 :root {
     /* Dash 4.x accent override */
-    --Dash-Fill-Interactive-Strong: #3d8b8a;
+    --Dash-Fill-Interactive-Strong: #FF5500;
 
     --bg-body: #dae5ec;
     --bg-content: #e8eff4;
     --bg-card: #ffffff;
-    --bg-sidebar: #1e3a4f;
-    --bg-sidebar-hover: rgba(255,255,255,0.08);
-    --bg-sidebar-active: rgba(255,255,255,0.15);
+    --bg-sidebar: #FF5500;
+    --bg-sidebar-hover: rgba(0,0,0,0.12);
+    --bg-sidebar-active: rgba(0,0,0,0.20);
 
     --text-primary: #1e293b;
     --text-secondary: #475569;
     --text-muted: #94a3b8;
-    --text-sidebar: #b0c4d8;
+    --text-sidebar: rgba(255,255,255,0.80);
     --text-sidebar-active: #ffffff;
 
-    --accent: #2a7c8c;
-    --accent-light: #e0f2f1;
-    --accent-hover: #1e6472;
-    --accent-bg: rgba(42,124,140,0.1);
+    --accent: #FF5500;
+    --accent-light: #fff3e0;
+    --accent-hover: #E64D00;
+    --accent-bg: rgba(255,85,0,0.08);
 
     --border: #d1dce6;
     --border-light: #e8eff4;
@@ -39,9 +39,9 @@
     --radius-md: 12px;
     --radius-lg: 16px;
 
-    --danger: #dc2626;
+    --danger: #FF0000;
     --success: #16a34a;
-    --warning: #d97706;
+    --warning: #FF7200;
 }
 
 /* ─── Global Reset & Base ───────────────────────────────────────────── */
@@ -84,7 +84,7 @@ body {
 .sidebar-logo-icon {
     width: 64px;
     height: 64px;
-    background: linear-gradient(135deg, #4db6ac, #26a69a);
+    background: linear-gradient(135deg, #FF7200, #FF5500);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -321,12 +321,12 @@ body {
     flex-shrink: 0;
 }
 
-.kpi-card .kpi-icon-box.teal { background: #e0f2f1; }
-.kpi-card .kpi-icon-box.blue { background: #e0eef5; }
-.kpi-card .kpi-icon-box.amber { background: #e0f0ed; }
-.kpi-card .kpi-icon-box.rose { background: #e3eef5; }
-.kpi-card .kpi-icon-box.green { background: #e0f2f1; }
-.kpi-card .kpi-icon-box.purple { background: #e8f0f5; }
+.kpi-card .kpi-icon-box.teal { background: #fff3e0; }
+.kpi-card .kpi-icon-box.blue { background: #fff8e1; }
+.kpi-card .kpi-icon-box.amber { background: #fbe9e7; }
+.kpi-card .kpi-icon-box.rose { background: #fce4ec; }
+.kpi-card .kpi-icon-box.green { background: #e8f5e9; }
+.kpi-card .kpi-icon-box.purple { background: #fff3e0; }
 
 .kpi-card .kpi-value {
     font-family: 'Outfit', sans-serif;
@@ -344,8 +344,8 @@ body {
     margin-bottom: 8px;
 }
 
-.kpi-change.positive { color: #3d8b8a; }
-.kpi-change.negative { color: #c0775a; }
+.kpi-change.positive { color: #16a34a; }
+.kpi-change.negative { color: #FF5500; }
 .kpi-change.neutral  { color: #94a3b8; font-weight: 500; }
 
 .kpi-sparkline {
@@ -363,7 +363,7 @@ body {
 
 .kpi-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #4db6ac, #26a69a);
+    background: linear-gradient(90deg, #FFC800, #FF5500);
     border-radius: 2px;
     transition: width 0.8s ease;
 }
@@ -374,7 +374,7 @@ body {
 }
 
 .gradient-border:hover {
-    border-color: #4db6ac;
+    border-color: #FF7200;
 }
 
 /* ─── Chart Title ───────────────────────────────────────────────────── */
@@ -425,8 +425,8 @@ body {
 
 /* ─── Neon / Glow Effects (adapted to light theme) ──────────────────── */
 .glow-teal {
-    border-color: #4db6ac;
-    box-shadow: 0 2px 8px rgba(42,124,140,0.15);
+    border-color: #FF7200;
+    box-shadow: 0 2px 8px rgba(255,85,0,0.15);
 }
 
 .glow-danger {
@@ -575,8 +575,8 @@ body {
 /* Dash 4.x slider uses --accent variable and internal classes */
 .rc-slider-track,
 .rc-slider-track-1 {
-    background: #3d8b8a !important;
-    background-color: #3d8b8a !important;
+    background: #FF5500 !important;
+    background-color: #FF5500 !important;
 }
 
 .rc-slider-handle,
@@ -584,8 +584,8 @@ body {
 .rc-slider-handle-2 {
     background: #fff !important;
     background-color: #fff !important;
-    border: 2px solid #3d8b8a !important;
-    border-color: #3d8b8a !important;
+    border: 2px solid #FF5500 !important;
+    border-color: #FF5500 !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
     opacity: 1 !important;
 }
@@ -594,8 +594,8 @@ body {
 .rc-slider-handle:active,
 .rc-slider-handle:focus,
 .rc-slider-handle-dragging {
-    border-color: #2e6e6e !important;
-    box-shadow: 0 0 0 4px rgba(61,139,138,0.2) !important;
+    border-color: #E64D00 !important;
+    box-shadow: 0 0 0 4px rgba(255,85,0,0.2) !important;
 }
 
 .rc-slider-rail {
@@ -604,7 +604,7 @@ body {
 }
 
 .rc-slider-dot-active {
-    border-color: #3d8b8a !important;
+    border-color: #FF5500 !important;
 }
 
 .rc-slider-mark-text {
@@ -618,7 +618,7 @@ body {
 }
 
 .rc-slider-tooltip-inner {
-    background: #3d8b8a !important;
+    background: #FF5500 !important;
     border: none !important;
 }
 
@@ -628,16 +628,16 @@ body {
 .teal-slider,
 [data-dash-is-loading],
 .dash-slider-container {
-    --accent: #3d8b8a !important;
-    --accent_10: rgba(61,139,138,0.1) !important;
-    --accent_50: rgba(61,139,138,0.5) !important;
+    --accent: #FF5500 !important;
+    --accent_10: rgba(255,85,0,0.1) !important;
+    --accent_50: rgba(255,85,0,0.5) !important;
 }
 
 /* Dash-internal slider track */
 .dash-slider .track,
 .teal-slider .track,
 div[class*="slider"] .track {
-    background-color: #3d8b8a !important;
+    background-color: #FF5500 !important;
 }
 
 /* Dash-internal slider thumb */
@@ -646,17 +646,17 @@ div[class*="slider"] .track {
 .dash-slider-thumb-2,
 .dash-slider .thumb,
 .teal-slider .thumb {
-    border-color: #3d8b8a !important;
+    border-color: #FF5500 !important;
     background-color: #fff !important;
 }
 
 /* Generic override for any purple-colored slider element */
 input[type="range"]::-webkit-slider-thumb {
-    background: #3d8b8a !important;
+    background: #FF5500 !important;
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-    background: linear-gradient(to right, #3d8b8a, #3d8b8a) !important;
+    background: linear-gradient(to right, #FF5500, #FF5500) !important;
 }
 
 /* ─── Button Group Overrides ────────────────────────────────────────── */

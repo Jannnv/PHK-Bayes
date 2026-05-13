@@ -1,32 +1,45 @@
 """
-Page 2: Tren & Analisis TBC
-Tren RR temporal, ranking provinsi, scatter kovariat vs RR, fixed effects table.
+Page 2: Tren & Analisis PHK
+Tren RR temporal, ranking provinsi, scatter TPAK/IPM vs RR, fixed effects forest plot, data table.
 """
 from dash import html, dcc, callback, Input, Output, dash_table
 import dash_bootstrap_components as dbc
-import plotly.express as px
 import plotly.graph_objects as go
+import plotly.express as px
 import pandas as pd
 import numpy as np
 
-from data.tbc_data_loader import (
-    load_tbc_data, load_fixed_effects, load_temporal,
-    COLORS, get_national_agg
+from data.phk_data_loader import (
+    load_phk_data, load_fixed_effects, COLORS, get_national_agg
 )
-from components.chart_utils import apply_chart_styling
+from components.chart_utils import apply_chart_styling, CHART_COLORS
 
 # ── Load data ───────────────────────────────────────────────────────────────
-DF       = load_tbc_data()
+DF       = load_phk_data()
 AGG      = get_national_agg(DF)
 FIXED_FX = load_fixed_effects()
-TEMPORAL = load_temporal()
 PROVINSI_LIST = sorted(DF['Provinsi'].unique().tolist())
 YEARS         = sorted(DF['Tahun'].unique().tolist())
 
-KOVARIAT_OPTIONS = [
-    {'label': 'Sanitasi Layak (%)',   'value': 'Sanitasi'},
-    {'label': 'Air Minum Layak (%)', 'value': 'AirMinum'},
-]
+# Kovariat available
+_has_tpak = 'TPAK' in DF.columns and DF['TPAK'].notna().any()
+_has_ipm  = 'IPM' in DF.columns and DF['IPM'].notna().any()
+
+KOVARIAT_OPTIONS = []
+if _has_tpak:
+    KOVARIAT_OPTIONS.append({'label': 'TPAK (%)', 'value': 'TPAK'})
+if _has_ipm:
+    KOVARIAT_OPTIONS.append({'label': 'IPM', 'value': 'IPM'})
+if not KOVARIAT_OPTIONS:
+    KOVARIAT_OPTIONS = [{'label': 'PHK (Observasi)', 'value': 'PHK'}]
+
+_default_kov = KOVARIAT_OPTIONS[0]['value']
+
+# Orange gradient for ranking
+_TOP_COLORS    = ['#FFD54F', '#FFB300', '#FF9E00', '#FF7200', '#FF5500',
+                  '#FF3D00', '#FF2600', '#FF0000', '#E60000', '#CC0000']
+_BOTTOM_COLORS = ['#FFF9C4', '#FFF176', '#FFEE58', '#FDD835', '#FBC02D',
+                  '#F9A825', '#F57F17', '#FF8F00', '#FF6F00', '#E65100']
 
 
 def layout():
@@ -34,8 +47,8 @@ def layout():
         # ── Header ──
         html.Div([
             html.Div([
-                html.H2('Tren & Analisis TBC', className='page-title gradient-text'),
-                html.P('Perkembangan temporal, korelasi kovariat, dan hasil model Bayesian ST-CAR',
+                html.H2('Tren & Analisis PHK', className='page-title gradient-text'),
+                html.P('Perkembangan temporal RR, korelasi kovariat, dan hasil model Bayesian ST-CAR',
                        className='page-subtitle'),
             ]),
         ], className='page-header'),
@@ -79,7 +92,7 @@ def layout():
                     id='tr-metric-toggle',
                     options=[
                         {'label': 'RR', 'value': 'RR'},
-                        {'label': 'Rate/100k', 'value': 'Rate_per100k'},
+                        {'label': 'PHK (Observasi)', 'value': 'PHK'},
                     ],
                     value='RR', inline=True,
                     className='btn-group',
@@ -87,7 +100,7 @@ def layout():
                     labelClassName='btn btn-outline-secondary btn-sm',
                     labelCheckedClassName='active',
                 ),
-            ], style={'flex': '1', 'minWidth': '160px'}),
+            ], style={'flex': '1', 'minWidth': '200px'}),
         ], className='glass-card', style={
             'display': 'flex', 'gap': '24px', 'alignItems': 'flex-end',
             'flexWrap': 'wrap', 'padding': '20px 24px', 'marginBottom': '24px',
@@ -136,9 +149,9 @@ def layout():
                         dcc.Dropdown(
                             id='tr-scatter-x',
                             options=KOVARIAT_OPTIONS,
-                            value='Sanitasi', clearable=False,
+                            value=_default_kov, clearable=False,
                             className='dash-dropdown',
-                            style={'width': '200px', 'marginLeft': 'auto'},
+                            style={'width': '180px', 'marginLeft': 'auto'},
                         ),
                     ], style={'display': 'flex', 'justifyContent': 'space-between',
                               'alignItems': 'center', 'flexWrap': 'wrap', 'gap': '8px',
@@ -149,7 +162,12 @@ def layout():
             ], lg=7, md=12),
         ], className='g-3 section-gap'),
 
-
+        # ── Forest Plot Fixed Effects ──
+        html.Div([
+            html.Div('🌲 Forest Plot — Fixed Effects (β)', className='chart-title'),
+            dcc.Graph(id='tr-fixed-effects', config={'displayModeBar': False},
+                      style={'height': '300px'}),
+        ], className='glass-card section-gap fade-in-up'),
 
         # ── Data Table ──
         html.Div([
@@ -163,9 +181,9 @@ def layout():
 
         # ── Footer ──
         html.Div([
-            'Dashboard TBC Indonesia | Model: Bayesian ST-CAR (INLA)',
+            'Dashboard PHK Indonesia | Model: Bayesian ST-CAR (CARBayesST)',
             html.Br(),
-            'Sumber Data: BPS, Kemenkes RI | Periode: 2020–2025',
+            'Sumber Data: BPS & Kemnaker RI | Periode: 2022–2025',
         ], className='dashboard-footer'),
 
     ], className='page-content')
@@ -184,51 +202,48 @@ def layout():
 )
 def update_line(year_range, sel_provs, metric):
     y0, y1 = year_range
-    agg = AGG[(AGG['Tahun'] >= y0) & (AGG['Tahun'] <= y1)]
-    metric_col = 'rata_rr' if metric == 'RR' else 'rata_rate'
-    label = 'Rata-rata RR Nasional' if metric == 'RR' else 'Angka Penemuan /100k Nasional'
+    metric_col = 'rata_rr' if metric == 'RR' else 'rata_phk'
+    label = 'Rata-rata RR Nasional' if metric == 'RR' else 'Rata-rata PHK Nasional'
     title = f'Tren {label} ({y0}–{y1})'
-    y_label = 'Relative Risk (RR)' if metric == 'RR' else 'Per 100.000 Penduduk'
+    y_label = 'Relative Risk (RR)' if metric == 'RR' else 'Jumlah PHK'
+
+    agg = AGG[(AGG['Tahun'] >= y0) & (AGG['Tahun'] <= y1)]
 
     fig = go.Figure()
 
-    # National line
     show_dashed = bool(sel_provs)
     fig.add_trace(go.Scatter(
         x=agg['Tahun'], y=agg[metric_col],
         name='Nasional', mode='lines+markers',
-        line=dict(color='#3d8b8a', width=3,
+        line=dict(color='#FF5500', width=3,
                   dash='dash' if show_dashed else 'solid'),
-        marker=dict(size=7),
+        marker=dict(size=7, color='#FF5500'),
         fill='tozeroy' if not show_dashed else None,
-        fillcolor='rgba(61,139,138,0.10)' if not show_dashed else None,
+        fillcolor='rgba(255,85,0,0.08)' if not show_dashed else None,
     ))
 
-    # Reference line RR=1
     if metric == 'RR':
-        fig.add_hline(y=1.0, line_dash='dot', line_color='#c0775a',
+        fig.add_hline(y=1.0, line_dash='dot', line_color='#94a3b8',
                       annotation_text='RR = 1 (Rata-rata Nasional)',
                       annotation_position='bottom right',
-                      annotation_font=dict(color='#c0775a', size=10, family='Inter'))
+                      annotation_font=dict(color='#94a3b8', size=10, family='Inter'))
 
-    # Province lines
     if sel_provs:
-        colors = COLORS['chart_sequence']
-        col_map = {'RR': 'RR', 'Rate_per100k': 'Rate_per100k'}
+        col_map = {'RR': 'RR', 'PHK': 'PHK'}
         for i, prov in enumerate(sel_provs[:5]):
             df_p = DF[(DF['Provinsi'] == prov) &
                       (DF['Tahun'] >= y0) & (DF['Tahun'] <= y1)]
             fig.add_trace(go.Scatter(
                 x=df_p['Tahun'], y=df_p[col_map[metric]],
                 name=prov, mode='lines+markers',
-                line=dict(color=colors[i % len(colors)], width=2),
+                line=dict(color=CHART_COLORS[i % len(CHART_COLORS)], width=2),
                 marker=dict(size=5),
             ))
 
     apply_chart_styling(fig, '')
     fig.update_layout(
         hovermode='x unified',
-        xaxis=dict(dtick=1, rangeslider=dict(visible=True, thickness=0.05)),
+        xaxis=dict(dtick=1),
         yaxis=dict(title=dict(text=y_label, font=dict(size=11, color='#475569'))),
         margin=dict(l=50, r=20, t=20, b=60),
         legend=dict(y=-0.25),
@@ -245,16 +260,14 @@ def update_ranking(year_range, toggle):
     tahun = year_range[1]
     df_y  = DF[DF['Tahun'] == tahun]
     if toggle == 'top':
-        df_p = df_y.nlargest(10, 'RR').sort_values('RR')
-        colors = ['#b8d4e3','#9fc5d5','#7caec4','#6aa1b5','#5ba4a4',
-                  '#4a9498','#3d8b8a','#d97f7f','#d94f4f','#c0302e']
+        df_p   = df_y.nlargest(10, 'RR').sort_values('RR')
+        colors = _TOP_COLORS
     else:
-        df_p = df_y.nsmallest(10, 'RR').sort_values('RR', ascending=False)
-        colors = ['#e0f2f1','#b2dfdb','#80cbc4','#4db6ac','#26a69a',
-                  '#1a8c82','#147a70','#0e685f','#085650','#044440']
+        df_p   = df_y.nsmallest(10, 'RR').sort_values('RR', ascending=False)
+        colors = _BOTTOM_COLORS
 
     n = len(df_p)
-    color_list = [colors[int(i*(len(colors)-1)/max(n-1,1))] for i in range(n)]
+    color_list = [colors[int(i * (len(colors) - 1) / max(n - 1, 1))] for i in range(n)]
 
     fig = go.Figure(go.Bar(
         x=df_p['RR'], y=df_p['Provinsi'], orientation='h',
@@ -265,8 +278,8 @@ def update_ranking(year_range, toggle):
         hovertemplate='<b>%{y}</b><br>RR: %{x:.3f}<extra></extra>',
     ))
     apply_chart_styling(fig)
-    fig.add_vline(x=1.0, line_dash='dot', line_color='#c0775a',
-                  annotation_text='RR=1', annotation_font=dict(color='#c0775a', size=9))
+    fig.add_vline(x=1.0, line_dash='dot', line_color='#94a3b8',
+                  annotation_text='RR=1', annotation_font=dict(color='#94a3b8', size=9))
     fig.update_layout(
         margin=dict(l=10, r=60, t=10, b=10),
         xaxis=dict(visible=True, title='Relative Risk',
@@ -283,10 +296,10 @@ def update_ranking(year_range, toggle):
     Input('tr-scatter-x', 'value'),
 )
 def update_scatter(year_range, x_col):
-    tahun = int(year_range[1])  # ensure Python int for comparison
+    tahun = int(year_range[1])
     df_y  = DF[DF['Tahun'] == tahun].copy()
 
-    if df_y.empty or x_col not in df_y.columns:
+    if df_y.empty or x_col not in df_y.columns or df_y[x_col].isna().all():
         fig = go.Figure()
         fig.add_annotation(text='Data tidak tersedia', x=0.5, y=0.5,
                            xref='paper', yref='paper', showarrow=False,
@@ -296,26 +309,25 @@ def update_scatter(year_range, x_col):
 
     x_label = next((o['label'] for o in KOVARIAT_OPTIONS if o['value'] == x_col), x_col)
 
-    # Color by RR value
+    df_y = df_y.dropna(subset=[x_col, 'RR'])
     rr_min, rr_max = df_y['RR'].min(), df_y['RR'].max()
 
-    fig = go.Figure()
-
-    # Scatter points sized by Rate_per100k
-    size_vals = df_y['Rate_per100k'].fillna(50)
-    size_norm = 8 + (size_vals - size_vals.min()) / (size_vals.max() - size_vals.min() + 1e-9) * 22
-
-    # Color gradient based on RR
+    # Color by RR intensity (orange gradient)
     colors = []
     for rr in df_y['RR']:
         ratio = (rr - rr_min) / (rr_max - rr_min + 1e-9)
         if ratio > 0.66:
-            colors.append('#d94f4f')
+            colors.append('#FF0000')
         elif ratio > 0.33:
-            colors.append('#c0775a')
+            colors.append('#FF5500')
         else:
-            colors.append('#2e8b57')
+            colors.append('#FFC800')
 
+    # Size by PHK
+    size_vals = df_y['PHK'].fillna(50)
+    size_norm = 8 + (size_vals - size_vals.min()) / (size_vals.max() - size_vals.min() + 1e-9) * 22
+
+    fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df_y[x_col],
         y=df_y['RR'],
@@ -331,19 +343,17 @@ def update_scatter(year_range, x_col):
         textfont=dict(family='Inter', size=8, color='#64748b'),
         hovertemplate=(
             '<b>%{text}</b><br>'
-            + x_label + ': %{x:.1f}<br>'
+            + x_label + ': %{x:.2f}<br>'
             'RR: %{y:.3f}<br>'
-            'Angka Penemuan: %{customdata:.1f}/100k'
+            'PHK: %{customdata:,}'
             '<extra></extra>'
         ),
-        customdata=df_y['Rate_per100k'],
+        customdata=df_y['PHK'].astype(int),
         showlegend=False,
     ))
 
-    # Manual linear trendline (no statsmodels needed)
-    import numpy as np
-    x_vals = df_y[x_col].dropna().values
-    y_vals = df_y.loc[df_y[x_col].notna(), 'RR'].values
+    x_vals = df_y[x_col].values
+    y_vals = df_y['RR'].values
     if len(x_vals) > 2:
         coeffs = np.polyfit(x_vals, y_vals, 1)
         x_line = np.linspace(x_vals.min(), x_vals.max(), 50)
@@ -351,24 +361,22 @@ def update_scatter(year_range, x_col):
         fig.add_trace(go.Scatter(
             x=x_line, y=y_line,
             mode='lines',
-            line=dict(color='rgba(61,139,138,0.5)', width=2, dash='dash'),
+            line=dict(color='rgba(255,85,0,0.4)', width=2, dash='dash'),
             name='Tren linear',
             hoverinfo='skip',
         ))
-        # Correlation annotation
         corr = np.corrcoef(x_vals, y_vals)[0, 1]
         fig.add_annotation(
             text=f'r = {corr:.3f}',
             x=0.02, y=0.98, xref='paper', yref='paper',
             showarrow=False, bgcolor='rgba(255,255,255,0.85)',
             bordercolor='#d1dce6', borderwidth=1, borderpad=6,
-            font=dict(family='Inter', size=12, color='#2a7c8c'),
+            font=dict(family='Inter', size=12, color='#FF5500'),
         )
 
-    # RR=1 reference line
-    fig.add_hline(y=1.0, line_dash='dot', line_color='#c0775a',
+    fig.add_hline(y=1.0, line_dash='dot', line_color='#94a3b8',
                   annotation_text='RR = 1',
-                  annotation_font=dict(color='#c0775a', size=9))
+                  annotation_font=dict(color='#94a3b8', size=9))
 
     apply_chart_styling(fig)
     fig.update_layout(
@@ -381,92 +389,36 @@ def update_scatter(year_range, x_col):
     return fig
 
 
-@callback(Output('tr-temporal-chart', 'figure'), Input('tr-year-slider', 'value'))
-def update_temporal(_year_range):
-    """Plot efek random temporal RW1."""
-    try:
-        df_t = TEMPORAL.copy()
-        # Kolom: ID, Tahun, mean, sd, 0.025quant, 0.975quant, mode
-        x_col    = 'Tahun' if 'Tahun' in df_t.columns else 'ID'
-        mean_col = 'mean'
-        lo_col   = '0.025quant'
-        hi_col   = '0.975quant'
-
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=df_t[x_col], y=df_t[hi_col],
-            mode='lines', line=dict(width=0),
-            showlegend=False, hoverinfo='skip',
-        ))
-        fig.add_trace(go.Scatter(
-            x=df_t[x_col], y=df_t[lo_col],
-            fill='tonexty', fillcolor='rgba(61,139,138,0.15)',
-            mode='lines', line=dict(width=0),
-            name='95% CI', hoverinfo='skip',
-        ))
-        fig.add_trace(go.Scatter(
-            x=df_t[x_col], y=df_t[mean_col],
-            mode='lines+markers',
-            line=dict(color='#3d8b8a', width=2.5),
-            marker=dict(size=7, color='#3d8b8a'),
-            name='Mean posterior',
-            hovertemplate='Tahun %{x}<br>Efek: %{y:.4f}<extra></extra>',
-        ))
-        fig.add_hline(y=0, line_dash='dot', line_color='#94a3b8')
-        apply_chart_styling(fig, '')
-        fig.update_layout(
-            margin=dict(l=50, r=20, t=10, b=40),
-            xaxis=dict(dtick=1, title='Tahun'),
-            yaxis=dict(title='Efek Random'),
-            height=290, showlegend=True,
-            legend=dict(y=-0.25, x=0.5, xanchor='center', orientation='h'),
-        )
-        return fig
-    except Exception as e:
-        fig = go.Figure()
-        fig.add_annotation(text=f'Error: {e}', x=0.5, y=0.5, showarrow=False)
-        return fig
-
-
 @callback(Output('tr-fixed-effects', 'figure'), Input('tr-year-slider', 'value'))
 def update_fixed_effects(_year_range):
     """Forest plot fixed effects dengan 95% CI."""
     try:
         df_fe = FIXED_FX.copy()
-        # Filter out intercept for cleaner display
-        if 'Variabel' in df_fe.columns:
-            var_col = 'Variabel'
-        else:
-            var_col = df_fe.columns[0]
+        var_col  = 'Variabel' if 'Variabel' in df_fe.columns else df_fe.columns[0]
+        mean_col = 'Mean'     if 'Mean'     in df_fe.columns else df_fe.columns[1]
+        lo_col   = '2.5%'     if '2.5%'     in df_fe.columns else df_fe.columns[2]
+        hi_col   = '97.5%'    if '97.5%'    in df_fe.columns else df_fe.columns[3]
 
-        df_plot = df_fe[df_fe[var_col] != 'Intercept'].copy()
-
-        mean_col = 'mean'
-        lo_col   = '0.025quant'
-        hi_col   = '0.975quant'
+        df_plot = df_fe[df_fe[var_col] != '(Intercept)'].copy()
 
         fig = go.Figure()
-        colors = ['#d94f4f' if float(row[lo_col]) > 0
-                  else '#2e8b57' if float(row[hi_col]) < 0
-                  else '#94a3b8'
-                  for _, row in df_plot.iterrows()]
-
-        for i, (_, row) in enumerate(df_plot.iterrows()):
+        for _, row in df_plot.iterrows():
             mean_v = float(row[mean_col])
             lo_v   = float(row[lo_col])
             hi_v   = float(row[hi_col])
             var    = str(row[var_col])
 
+            color = '#FF0000' if lo_v > 0 else '#16a34a' if hi_v < 0 else '#FF8F00'
+
             fig.add_trace(go.Scatter(
                 x=[lo_v, hi_v], y=[var, var],
-                mode='lines', line=dict(color=colors[i], width=3),
+                mode='lines', line=dict(color=color, width=3),
                 showlegend=False, hoverinfo='skip',
             ))
             fig.add_trace(go.Scatter(
                 x=[mean_v], y=[var],
                 mode='markers',
-                marker=dict(size=10, color=colors[i],
-                            line=dict(color='white', width=1.5)),
+                marker=dict(size=10, color=color, line=dict(color='white', width=1.5)),
                 showlegend=False,
                 hovertemplate=f'<b>{var}</b><br>β = {mean_v:.4f}<br>95% CI: ({lo_v:.4f}, {hi_v:.4f})<extra></extra>',
             ))
@@ -478,7 +430,7 @@ def update_fixed_effects(_year_range):
             margin=dict(l=10, r=20, t=10, b=40),
             xaxis=dict(title='Koefisien (β)', zeroline=True),
             yaxis=dict(automargin=True, tickfont=dict(size=11)),
-            height=290, showlegend=False,
+            height=280, showlegend=False,
         )
         return fig
     except Exception as e:
@@ -500,16 +452,18 @@ def update_table(year_range, sel_provs):
     df_y = df_y.sort_values('RR', ascending=False)
 
     cols = [
-        {'name': 'Provinsi',          'id': 'Provinsi'},
-        {'name': 'RR',                'id': 'RR', 'type': 'numeric',
+        {'name': 'Provinsi', 'id': 'Provinsi'},
+        {'name': 'RR', 'id': 'RR', 'type': 'numeric',
          'format': dash_table.Format.Format(precision=4, scheme=dash_table.Format.Scheme.fixed)},
-        {'name': 'Angka Penemuan/100k','id': 'Rate_per100k', 'type': 'numeric',
-         'format': dash_table.Format.Format(precision=1, scheme=dash_table.Format.Scheme.fixed)},
-        {'name': 'Sanitasi (%)',       'id': 'Sanitasi', 'type': 'numeric',
-         'format': dash_table.Format.Format(precision=1, scheme=dash_table.Format.Scheme.fixed)},
-        {'name': 'Air Minum (%)',      'id': 'AirMinum', 'type': 'numeric',
-         'format': dash_table.Format.Format(precision=1, scheme=dash_table.Format.Scheme.fixed)},
+        {'name': 'PHK', 'id': 'PHK', 'type': 'numeric',
+         'format': dash_table.Format.Format(group=True)},
     ]
+    if 'TPAK' in df_y.columns and df_y['TPAK'].notna().any():
+        cols.append({'name': 'TPAK (%)', 'id': 'TPAK', 'type': 'numeric',
+                     'format': dash_table.Format.Format(precision=1, scheme=dash_table.Format.Scheme.fixed)})
+    if 'IPM' in df_y.columns and df_y['IPM'].notna().any():
+        cols.append({'name': 'IPM', 'id': 'IPM', 'type': 'numeric',
+                     'format': dash_table.Format.Format(precision=2, scheme=dash_table.Format.Scheme.fixed)})
 
     table = dash_table.DataTable(
         id='tr-detail-table',
@@ -519,8 +473,8 @@ def update_table(year_range, sel_provs):
         page_size=10, export_format='csv',
         style_table={'overflowX': 'auto'},
         style_header={
-            'backgroundColor': '#e0f2f1', 'fontFamily': 'Inter',
-            'fontWeight': '600', 'color': '#2a7c8c',
+            'backgroundColor': '#fff3e0', 'fontFamily': 'Inter',
+            'fontWeight': '600', 'color': '#FF5500',
             'border': 'none', 'borderBottom': '1px solid #d1dce6',
             'padding': '12px 16px', 'textAlign': 'left',
         },
@@ -533,13 +487,13 @@ def update_table(year_range, sel_provs):
         },
         style_data_conditional=[
             {'if': {'filter_query': '{RR} > 1.5', 'column_id': 'RR'},
-             'backgroundColor': 'rgba(217,79,79,0.15)', 'color': '#d94f4f', 'fontWeight': '600'},
+             'backgroundColor': 'rgba(255,0,0,0.10)', 'color': '#FF0000', 'fontWeight': '600'},
             {'if': {'filter_query': '{RR} > 1.0 && {RR} <= 1.5', 'column_id': 'RR'},
-             'backgroundColor': 'rgba(192,119,90,0.15)', 'color': '#c0775a', 'fontWeight': '600'},
+             'backgroundColor': 'rgba(255,85,0,0.10)', 'color': '#FF5500', 'fontWeight': '600'},
             {'if': {'filter_query': '{RR} < 1.0', 'column_id': 'RR'},
-             'backgroundColor': 'rgba(46,139,87,0.12)', 'color': '#2e8b57', 'fontWeight': '600'},
+             'backgroundColor': 'rgba(22,163,74,0.08)', 'color': '#16a34a', 'fontWeight': '600'},
             {'if': {'state': 'active'},
-             'backgroundColor': 'rgba(42,124,140,0.08)', 'border': 'none'},
+             'backgroundColor': 'rgba(255,85,0,0.06)', 'border': 'none'},
         ],
         style_as_list_view=True,
     )

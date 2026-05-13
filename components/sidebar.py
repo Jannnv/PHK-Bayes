@@ -1,6 +1,6 @@
 """
-Sidebar Component — Dashboard TBC Indonesia
-Dark teal sidebar dengan navigasi dan sliding active indicator.
+Sidebar Component — Dashboard PHK Indonesia
+Orange sidebar dengan navigasi dan sliding active indicator.
 """
 from dash import html
 import dash_bootstrap_components as dbc
@@ -15,7 +15,7 @@ def create_sidebar():
                 'width': '170px', 'height': 'auto', 'marginBottom': '8px',
                 'borderRadius': '12px',
             }),
-            html.Div('TBC INDONESIA', className='sidebar-logo-text'),
+            html.Div('PHK INDONESIA', className='sidebar-logo-text'),
             html.Div('Dashboard Analitik Spasial', className='sidebar-logo-sub'),
         ], className='sidebar-logo'),
 
@@ -28,7 +28,7 @@ def create_sidebar():
 
             dbc.NavLink([
                 html.Span('📌', className='sidebar-link-icon'),
-                html.Span('Overview TBC'),
+                html.Span('Overview PHK'),
             ], href='/', id='nav-overview', className='sidebar-link'),
 
             dbc.NavLink([
@@ -54,11 +54,11 @@ def create_sidebar():
 
             html.Div([
                 html.Div('Model: Bayesian ST-CAR', style={
-                    'fontSize': '10px', 'color': 'rgba(255,255,255,0.4)',
+                    'fontSize': '10px', 'color': 'rgba(255,255,255,0.5)',
                     'textAlign': 'center', 'marginBottom': '4px',
                 }),
-                html.Div('Data: 34 Provinsi | 2020–2025', style={
-                    'fontSize': '10px', 'color': 'rgba(255,255,255,0.4)',
+                html.Div('Data: 34 Provinsi | 2022–2025', style={
+                    'fontSize': '10px', 'color': 'rgba(255,255,255,0.5)',
                     'textAlign': 'center',
                 }),
             ], style={'padding': '8px 0'}),

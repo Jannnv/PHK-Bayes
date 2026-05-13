@@ -1,13 +1,13 @@
 """
-Chart Utilities — Light Professional Theme
-Shared Plotly figure styling for the dashboard.
+Chart Utilities — Orange Gradient Theme
+Shared Plotly figure styling for the PHK dashboard.
 """
 import plotly.graph_objects as go
 
 
-# ── Light theme chart palette ──
-CHART_COLORS = ['#3d8b8a', '#5ba4a4', '#7ab8b8', '#4a8fa8', '#7caec4',
-                '#9fc5d5', '#b8d4e3', '#80cbc4', '#26a69a', '#1e3a4f']
+# ── Orange gradient chart palette ──
+CHART_COLORS = ['#FFC800', '#FFB300', '#FF9E00', '#FF8F00', '#FF7200',
+                '#FF5500', '#FF3D00', '#FF0000', '#E60000', '#CC0000']
 
 
 def apply_chart_styling(fig, title=None):
@@ -57,7 +57,7 @@ def apply_chart_styling(fig, title=None):
     return fig
 
 
-def create_sparkline(data, color='#4db6ac', height=30):
+def create_sparkline(data, color='#FF5500', height=30):
     """Create a minimal sparkline figure for KPI cards."""
     fig = go.Figure(go.Scatter(
         y=data,

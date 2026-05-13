@@ -1,17 +1,17 @@
 """
-Insight Box — Dashboard TBC Indonesia
-Auto-generated natural language summary dari model INLA.
+Insight Box — Dashboard PHK Indonesia
+Auto-generated natural language summary dari model Bayesian ST-CAR.
 """
 from dash import html
 
 
-def generate_insight_tbc(df, tahun, selected_province=None):
+def generate_insight_phk(df, tahun, selected_province=None):
     """
-    Generate insight TBC dari data model INLA.
+    Generate insight PHK dari data model ST.CARar.
 
     Parameters
     ----------
-    df : DataFrame  — tbc_data.csv (kolom: Provinsi, Tahun, Rate_per100k, RR, ...)
+    df : DataFrame  — data PHK (kolom: Provinsi, Tahun, RR, PHK, TPAK, IPM)
     tahun : int     — tahun terpilih
     selected_province : str | None
     """
@@ -20,59 +20,59 @@ def generate_insight_tbc(df, tahun, selected_province=None):
         return html.Div("Data tidak tersedia.", className='insight-text')
 
     # ── Metrik utama ──
-    avg_rate = df_year['Rate_per100k'].mean()
     avg_rr   = df_year['RR'].mean()
+    total_phk = int(df_year['PHK'].sum())
+    max_rr_row = df_year.loc[df_year['RR'].idxmax()]
+    min_rr_row = df_year.loc[df_year['RR'].idxmin()]
+    max_phk_row = df_year.loc[df_year['PHK'].idxmax()]
 
-    max_rate_row = df_year.loc[df_year['Rate_per100k'].idxmax()]
-    min_rate_row = df_year.loc[df_year['Rate_per100k'].idxmin()]
-    max_rr_row   = df_year.loc[df_year['RR'].idxmax()]
-
-    prov_max_rate = max_rate_row['Provinsi']
-    val_max_rate  = max_rate_row['Rate_per100k']
-    prov_min_rate = min_rate_row['Provinsi']
-    val_min_rate  = min_rate_row['Rate_per100k']
-    prov_max_rr   = max_rr_row['Provinsi']
-    val_max_rr    = max_rr_row['RR']
+    prov_max_rr  = max_rr_row['Provinsi']
+    val_max_rr   = max_rr_row['RR']
+    prov_min_rr  = min_rr_row['Provinsi']
+    val_min_rr   = min_rr_row['RR']
+    prov_max_phk = max_phk_row['Provinsi']
+    val_max_phk  = int(max_phk_row['PHK'])
 
     # Provinsi RR > 1
     high_risk = df_year[df_year['RR'] > 1.0].sort_values('RR', ascending=False)
     n_high    = len(high_risk)
     list_high = high_risk['Provinsi'].head(4).tolist()
 
-    # YoY Rate
-    if tahun > 2020:
+    # YoY PHK
+    years = sorted(df['Tahun'].unique())
+    if tahun > years[0]:
         df_prev = df[df['Tahun'] == tahun - 1]
         if not df_prev.empty:
-            prev_avg = df_prev['Rate_per100k'].mean()
-            yoy = avg_rate - prev_avg
+            prev_total = int(df_prev['PHK'].sum())
+            delta = total_phk - prev_total
         else:
-            yoy = 0
+            delta = 0
     else:
-        yoy = 0
+        delta = 0
 
-    yoy_dir = "kenaikan" if yoy > 0 else "penurunan"
-    yoy_abs = abs(yoy)
+    delta_dir = "kenaikan" if delta > 0 else "penurunan"
+    delta_abs = abs(delta)
 
     # ── Build paragraphs ──
     parts = []
 
     parts.append(
         f"📌 **Insight Utama ({tahun}):** "
-        f"**{prov_max_rate}** memiliki Angka Penemuan TBC tertinggi sebesar "
-        f"**{val_max_rate:.1f} per 100.000 penduduk**, "
-        f"sementara **{prov_min_rate}** paling rendah (**{val_min_rate:.1f}/100.000**). "
-        f"Rata-rata nasional berada di **{avg_rate:.1f}/100.000**."
+        f"Total PHK nasional tercatat **{total_phk:,} pekerja**, "
+        f"dengan **{prov_max_phk}** mencatat jumlah PHK terbesar (**{val_max_phk:,} pekerja**). "
+        f"Rata-rata Relative Risk (RR) nasional berada di **{avg_rr:.3f}**."
     )
 
-    if tahun > 2020:
+    if tahun > years[0]:
         parts.append(
-            f" Dibandingkan tahun {tahun - 1}, angka penemuan mengalami "
-            f"**{yoy_dir}** sebesar **{yoy_abs:.1f}** per 100.000."
+            f" Dibandingkan tahun {tahun - 1}, total PHK mengalami "
+            f"**{delta_dir}** sebesar **{delta_abs:,} pekerja**."
         )
 
     parts.append(
         f" Dari sisi model Bayesian, **{prov_max_rr}** memiliki Relative Risk tertinggi "
-        f"(**RR = {val_max_rr:.3f}**), menunjukkan risiko TBC jauh di atas rata-rata nasional."
+        f"(**RR = {val_max_rr:.3f}**), menunjukkan risiko PHK jauh di atas rata-rata nasional. "
+        f"Sebaliknya, **{prov_min_rr}** memiliki RR terendah (**{val_min_rr:.3f}**)."
     )
 
     if n_high > 0:
@@ -90,14 +90,15 @@ def generate_insight_tbc(df, tahun, selected_province=None):
             rank = df_year['RR'].rank(ascending=False)
             prov_rank = int(rank[prov_data.index[0]])
             rr_status = "di atas" if row['RR'] > 1.0 else "di bawah"
+            tpak_str = f", TPAK **{row['TPAK']:.1f}%**" if 'TPAK' in row and not __import__('math').isnan(row['TPAK']) else ""
+            ipm_str  = f", IPM **{row['IPM']:.2f}**" if 'IPM' in row and not __import__('math').isnan(row['IPM']) else ""
             parts.append(
                 f"\n\n🔍 **Fokus {selected_province}:** Peringkat ke-**{prov_rank}** dari 34 provinsi "
                 f"dengan RR **{row['RR']:.3f}** ({rr_status} rata-rata), "
-                f"angka penemuan **{row['Rate_per100k']:.1f}/100.000**, "
-                f"sanitasi layak **{row['Sanitasi']:.1f}%**."
+                f"PHK **{int(row['PHK']):,} pekerja**{tpak_str}{ipm_str}."
             )
 
-    # Render
+    # Render with bold
     full_text = ''.join(parts)
     segments  = full_text.split('**')
     children  = []

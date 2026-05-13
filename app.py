@@ -1,6 +1,6 @@
 """
-Dashboard Kemiskinan Indonesia — Main Application
-Premium Plotly Dash dashboard with 3 pages, dark glassmorphism theme.
+Dashboard PHK Indonesia — Main Application
+Premium Plotly Dash dashboard with 2 pages, orange-gradient theme.
 """
 import sys
 import os
@@ -23,11 +23,11 @@ app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP],
     suppress_callback_exceptions=True,
-    title='Dashboard TBC Indonesia',
+    title='Dashboard PHK Indonesia',
     update_title='Memuat...',
     meta_tags=[
         {'name': 'viewport', 'content': 'width=device-width, initial-scale=1.0'},
-        {'name': 'description', 'content': 'Dashboard TBC Indonesia - Analisis Bayesian Spasio-Temporal 34 Provinsi'},
+        {'name': 'description', 'content': 'Dashboard PHK Indonesia - Analisis Bayesian Spasio-Temporal 34 Provinsi 2022-2025'},
     ],
 )
 
@@ -39,33 +39,32 @@ server = app.server
 
 TOUR_STEPS = [
     {
-        'title': 'Selamat Datang! 🫁',
-        'text': 'Dashboard TBC Indonesia menyajikan hasil analisis model Bayesian '
-                'Bayesian ST-CAR untuk 34 provinsi periode 2020–2025. '
-                'Data mencakup Angka Penemuan TBC, Relative Risk (RR), dan kovariat sosial-ekonomi.',
+        'title': 'Selamat Datang! 👷',
+        'text': 'Dashboard PHK Indonesia menyajikan hasil analisis model Bayesian '
+                'ST-CAR untuk 34 provinsi periode 2022–2025. '
+                'Data mencakup jumlah PHK, Relative Risk (RR), dan kovariat TPAK & IPM.',
     },
     {
         'title': 'KPI Cards 📊',
-        'text': 'Baris atas menampilkan indikator utama: Angka Penemuan TBC per 100.000 penduduk, '
-                'Rata-rata RR nasional, jumlah provinsi dengan RR > 1, dan cakupan sanitasi/air minum. '
-                'RR > 1 berarti risiko di atas rata-rata nasional.',
+        'text': 'Baris atas menampilkan indikator utama: Rata-rata RR nasional, '
+                'Total PHK, jumlah provinsi dengan RR > 1, RR tertinggi, TPAK, dan IPM. '
+                'RR > 1 berarti risiko PHK di atas rata-rata nasional.',
     },
     {
-        'title': 'Peta TBC 🗺️',
-        'text': 'Peta menampilkan distribusi spasial TBC. Gunakan toggle untuk beralih antara '
-                'Relative Risk (RR dari model INLA) dan Angka Penemuan per 100.000 penduduk. '
-                'Klik provinsi untuk melihat insight spesifik.',
+        'title': 'Peta Relative Risk 🗺️',
+        'text': 'Peta menampilkan distribusi spasial RR PHK. Warna lebih gelap menunjukkan '
+                'risiko lebih tinggi. Klik provinsi untuk melihat insight spesifik.',
     },
     {
-        'title': 'Diagnostik & Hyperparameter 🔬',
-        'text': 'Bagian bawah Overview menampilkan diagnostik model (DIC, WAIC, CPO) '
-                'dan hyperparameter posterior model Leroux (ν², τ², ρS, ρT).',
+        'title': 'Diagnostik & Fixed Effects 🔬',
+        'text': 'Bagian bawah Overview menampilkan diagnostik model (DIC), '
+                'hyperparameter posterior (τ², ρ), dan estimasi fixed effects (β) '
+                'untuk kovariat TPAK dan IPM.',
     },
     {
         'title': 'Halaman Tren & Analisis 📈',
-        'text': 'Halaman kedua menyajikan tren temporal RR, ranking provinsi, '
-                'scatter plot korelasi kovariat vs RR, efek random temporal (RW1), '
-                'dan forest plot estimasi fixed effects.',
+        'text': 'Halaman kedua menyajikan tren temporal RR/PHK, ranking provinsi, '
+                'scatter plot korelasi TPAK/IPM vs RR, dan forest plot estimasi fixed effects.',
     },
     {
         'title': 'Selamat Mengeksplorasi! 🚀',
@@ -104,11 +103,7 @@ app.layout = html.Div([
                 ]),
                 html.Tr([
                     html.Td(html.Span('2', className='shortcut-key')),
-                    html.Td('Buka halaman Tren & Perbandingan'),
-                ]),
-                html.Tr([
-                    html.Td(html.Span('3', className='shortcut-key')),
-                    html.Td('Buka halaman Analisis & Korelasi'),
+                    html.Td('Buka halaman Tren & Analisis'),
                 ]),
                 html.Tr([
                     html.Td(html.Span('R', className='shortcut-key')),
@@ -143,22 +138,22 @@ app.layout = html.Div([
     
     # ── About Modal ──
     dbc.Modal([
-        dbc.ModalHeader(dbc.ModalTitle('ℹ️ Tentang Dashboard TBC Indonesia')),
+        dbc.ModalHeader(dbc.ModalTitle('ℹ️ Tentang Dashboard PHK Indonesia')),
         dbc.ModalBody([
             html.P([
                 'Dashboard ini menyajikan hasil analisis model ',
                 html.Strong('Bayesian ST-CAR'),
-                ' untuk data Tuberkulosis (TBC) 34 provinsi Indonesia periode 2020–2025.',
+                ' untuk data Pemutusan Hubungan Kerja (PHK) 34 provinsi Indonesia periode 2022–2025.',
             ], style={'lineHeight': '1.7', 'color': '#475569'}),
             html.P([
-                'Model dibangun menggunakan paket ', html.Strong('R-INLA'),
-                ' efek temporal RW1, dan interaksi spasio-temporal IID.',
+                'Model dibangun menggunakan paket ', html.Strong('CARBayesST'),
+                ' dengan fungsi ST.CARar, kovariat TPAK dan IPM (z-standardized).',
             ], style={'lineHeight': '1.7', 'color': '#475569'}),
             html.Hr(style={'borderColor': '#e8eff4'}),
             html.P([
-                '📊 Data: BPS & Kemenkes RI | '
-                '🔧 Tools: R-INLA, Plotly Dash | '
-                '📅 Periode: 2020–2025',
+                '📊 Data: BPS & Kemnaker RI | '
+                '🔧 Tools: CARBayesST, Plotly Dash | '
+                '📅 Periode: 2022–2025',
             ], style={'fontSize': '13px', 'color': '#94a3b8'}),
         ]),
         dbc.ModalFooter(
@@ -291,7 +286,7 @@ def manage_tour(start_clicks, next_clicks, prev_clicks, is_open, current_step):
     content = html.Div([
         html.H4(tour['title'], style={
             'fontFamily': 'Outfit', 'fontWeight': '600', 'marginBottom': '16px',
-            'color': '#e2e8f0',
+            'color': '#1e293b',
         }),
         html.P(tour['text'], className='tour-text'),
     ])
@@ -337,7 +332,6 @@ app.clientside_callback(
         window._keyboardListenerAdded = true;
         
         document.addEventListener('keydown', function(e) {
-            // Don't trigger when typing in inputs
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
                 return;
             }
@@ -348,16 +342,9 @@ app.clientside_callback(
             } else if (e.key === '2') {
                 window.history.pushState({}, '', '/trends');
                 window.dispatchEvent(new PopStateEvent('popstate'));
-            } else if (e.key === '3') {
-                window.history.pushState({}, '', '/analysis');
-                window.dispatchEvent(new PopStateEvent('popstate'));
             } else if (e.key === '?') {
-                var modal = document.getElementById('shortcut-modal');
-                if (modal) {
-                    // Toggle via click on close button
-                    var closeBtn = document.getElementById('close-shortcut-modal');
-                    if (closeBtn) closeBtn.click();
-                }
+                var closeBtn = document.getElementById('close-shortcut-modal');
+                if (closeBtn) closeBtn.click();
             }
         });
         
@@ -417,7 +404,6 @@ app.clientside_callback(
                 var text = el.textContent.trim();
                 var originalText = text;
                 
-                // Extract numeric value
                 var numStr = text.replace(/[^0-9.,]/g, '').replace(/\\./g, '').replace(',', '.');
                 var targetVal = parseFloat(numStr);
                 
@@ -426,10 +412,9 @@ app.clientside_callback(
                 var prefix = '';
                 var suffix = '';
                 
-                // Detect format
                 if (text.includes('Rp')) prefix = 'Rp ';
                 if (text.includes('%')) suffix = '%';
-                if (text.includes('Juta')) suffix = ' Juta';
+                if (text.includes('Prov')) suffix = ' Prov';
                 
                 var duration = 1500;
                 var startTime = null;
@@ -439,12 +424,10 @@ app.clientside_callback(
                 }
                 
                 function formatNumber(val) {
-                    if (suffix === ' Juta') {
-                        return prefix + val.toFixed(1) + suffix;
+                    if (suffix === ' Prov') {
+                        return Math.round(val) + suffix;
                     } else if (suffix === '%') {
-                        return prefix + val.toFixed(2) + suffix;
-                    } else if (prefix === 'Rp ') {
-                        return prefix + Math.round(val).toLocaleString('id-ID');
+                        return prefix + val.toFixed(1) + suffix;
                     } else if (originalText.includes('.') && !originalText.includes(',')) {
                         var decimals = (originalText.split('.')[1] || '').length;
                         return val.toFixed(Math.min(decimals, 3));
